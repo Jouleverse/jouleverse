@@ -214,6 +214,10 @@ type Config struct {
 
 	// OverrideTerminalTotalDifficultyPassed (TODO: remove after the fork)
 	OverrideTerminalTotalDifficultyPassed *bool `toml:",omitempty"`
+
+	//Transfer ability setting; If nill, anybody can transfer energy from one to others.
+	// If you want to disable anyone to transfer, you can set it as ["0x000000000000000000000000000000000000000000"]
+	AllowTransfer []string `toml:",omitempty"`
 }
 
 // CreateConsensusEngine creates a consensus engine for the given chain configuration.

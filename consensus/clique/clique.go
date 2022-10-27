@@ -590,6 +590,37 @@ func (c *Clique) Authorize(signer common.Address, signFn SignerFn) {
 	c.signFn = signFn
 }
 
+// Check whether sender is correct one that can send 'gas token'
+func (c *Clique) canTransferGas(tx *types.Transaction) (bool, common.Address) {
+	sender, err := types.Sender(types.NewEIP155Signer(tx.ChainId()), tx)
+	if err != nil {
+		log.Warn("In clique processor", "Sender ERR", err, "txid", tx.Hash().Hex())
+		return false, common.Address{}
+	}
+
+	log.Debug("in clique canTransferGas", "address", c.config.AllowTransfer, "txid", tx.Hash().Hex(), "tx sender", sender.Hex())
+	//If allowTransfer is nil, ignore authority verify directly
+	if len(c.config.AllowTransfer) == 0 {
+		return true, common.Address{}
+	}
+
+	for _, addr := range c.config.AllowTransfer {
+		//User who is added in the txpool config list
+		//can do anything, return directly.
+		if addr == sender.Hex() {
+			return true, sender
+		}
+
+	}
+	//Sender is not in txpool config transfer value list,
+	//however, transfer gas value is zero, return true
+	if tx.Value().Cmp(big.NewInt(0)) == 0 {
+		return true, sender
+	}
+	log.Warn("In clique processor canTransferGas Fail", "sender", sender.Hex(), "Txid", tx.Hash().Hex())
+	return false, sender
+}
+
 // Seal implements consensus.Engine, attempting to create a sealed block using
 // the local signing credentials.
 func (c *Clique) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) error {
@@ -604,6 +635,13 @@ func (c *Clique) Seal(chain consensus.ChainHeaderReader, block *types.Block, res
 	if c.config.Period == 0 && len(block.Transactions()) == 0 {
 		return errors.New("sealing paused while waiting for transactions")
 	}
+
+	for _, tx := range block.Transactions() {
+		if can, sender := c.canTransferGas(tx); can == false {
+			return errors.New("transfer not allow, sender " + sender.Hex() + " txid " + tx.Hash().String())
+		}
+	}
+
 	// Don't hold the signer fields for the entire sealing procedure
 	c.lock.RLock()
 	signer, signFn := c.signer, c.signFn

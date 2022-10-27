@@ -34,6 +34,8 @@ type Config struct {
 	JumpTable *JumpTable // EVM instruction table, automatically populated if unset
 
 	ExtraEips []int // Additional EIPS that are to be enabled
+
+	AllowTransfer []string // Who can transfer energy
 }
 
 // ScopeContext contains the things that are per-call, such as stack and memory,

@@ -85,6 +85,10 @@ var (
 	// than some meaningful limit a user might use. This is not a consensus error
 	// making the transaction invalid, rather a DOS protection.
 	ErrOversizedData = errors.New("oversized data")
+
+	//ErrNoAuthTransfer is returned if the user is not in the memory pool configuration list,
+	//they will not have the transfer permission
+	ErrNoAuthTransfer = errors.New("unauth to transfer energy")
 )
 
 var (
@@ -164,7 +168,8 @@ type TxPoolConfig struct {
 	AccountQueue uint64 // Maximum number of non-executable transaction slots permitted per account
 	GlobalQueue  uint64 // Maximum number of non-executable transaction slots for all accounts
 
-	Lifetime time.Duration // Maximum amount of time non-executable transaction are queued
+	Lifetime      time.Duration // Maximum amount of time non-executable transaction are queued
+	AllowTransfer []string      // Who can transfer energy
 }
 
 // DefaultTxPoolConfig contains the default configurations for the transaction
@@ -581,6 +586,32 @@ func (pool *TxPool) local() map[common.Address]types.Transactions {
 	return txs
 }
 
+// Check whether sender is correct one that can send 'energy'
+func (pool *TxPool) canTransferGas(sender common.Address, tx *types.Transaction) bool {
+	log.Debug("in txpool.canTransferGas", "address", pool.config.AllowTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
+	//If allowTransfer is nil, anyone can transfer energy,
+	//so ignore authority verify directly
+	if len(pool.config.AllowTransfer) == 0 {
+		return true
+	}
+
+	for _, addr := range pool.config.AllowTransfer {
+		//User who is added in the txpool config list
+		//can do anything, return directly.
+		if addr == sender.Hex() {
+			return true
+		}
+
+	}
+	//Sender is not in txpool config transfer value list,
+	//however, transfer gas value is zero, return true
+	if tx.Value().Cmp(big.NewInt(0)) == 0 {
+		return true
+	}
+	log.Warn("TxPool canTransfer validate false", "sender", sender.Hex(), "hash", tx.Hash())
+	return false
+}
+
 // validateTx checks whether a transaction is valid according to the consensus
 // rules and adheres to some heuristic limits of the local node (price and size).
 func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
@@ -620,6 +651,10 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	from, err := types.Sender(pool.signer, tx)
 	if err != nil {
 		return ErrInvalidSender
+	}
+	// Check sender has auth to transfer 'energy'
+	if pool.canTransferGas(from, tx) == false {
+		return ErrNoAuthTransfer
 	}
 	// Drop non-local transactions under our own minimal accepted gas price or tip
 	if !local && tx.GasTipCapIntCmp(pool.gasPrice) < 0 {

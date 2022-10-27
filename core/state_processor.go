@@ -18,6 +18,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/ethereum/go-ethereum/log"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -47,6 +48,31 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain, engine consen
 		bc:     bc,
 		engine: engine,
 	}
+}
+
+// Check whether sender is correct one that can send 'gas token'
+func canTransferGas(sender common.Address, tx *types.Transaction, config vm.Config) bool {
+	log.Debug("in state processor", "address", config.AllowTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
+	//If allowTransfer is nil, ignore authority verify directly
+	if len(config.AllowTransfer) == 0 {
+		return true
+	}
+
+	for _, addr := range config.AllowTransfer {
+		//User who is added in the txpool config list
+		//can do anything, return directly.
+		if addr == sender.Hex() {
+			return true
+		}
+
+	}
+	//Sender is not in txpool config transfer value list,
+	//however, transfer gas value is zero, return true
+	if tx.Value().Cmp(big.NewInt(0)) == 0 {
+		return true
+	}
+	log.Warn("In state processor verify allowTransfer failed", "sender", sender.Hex(), "txid", tx.Hash().Hex())
+	return false
 }
 
 // Process processes the state changes according to the Ethereum rules by running
@@ -79,6 +105,11 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 			return nil, nil, 0, fmt.Errorf("could not apply tx %d [%v]: %w", i, tx.Hash().Hex(), err)
 		}
 		statedb.Prepare(tx.Hash(), i)
+
+		if false == canTransferGas(msg.From(), tx, cfg) {
+			return nil, nil, 0, fmt.Errorf("could not transfer Energy, tx %d [%v], tx sender: [%v]", i, tx.Hash().Hex(), msg.From().Hex())
+		}
+
 		receipt, err := applyTransaction(msg, p.config, nil, gp, statedb, blockNumber, blockHash, tx, usedGas, vmenv)
 		if err != nil {
 			return nil, nil, 0, fmt.Errorf("could not apply tx %d [%v]: %w", i, tx.Hash().Hex(), err)
