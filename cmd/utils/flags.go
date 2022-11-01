@@ -1724,12 +1724,36 @@ func CheckExclusive(ctx *cli.Context, args ...interface{}) {
 	}
 }
 
+func checkAllowTransfer(cfg *ethconfig.Config) {
+	if len(cfg.AllowTransfer) == 0 {
+		return
+	}
+
+	addrs := make([]string, 0, len(cfg.AllowTransfer))
+	for _, addr := range cfg.AllowTransfer {
+		if common.IsHexAddress(addr) == false {
+			addrs = append(addrs, addr)
+			continue
+		}
+
+		//address must be checksum format
+		if common.HexToAddress(addr).String() != addr {
+			addrs = append(addrs, addr)
+		}
+	}
+
+	if len(addrs) > 0 {
+		log.Error("invalid address in AllowTransfer config", "addr", addrs)
+	}
+}
+
 // SetEthConfig applies eth-related command line flags to the config.
 func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 	// Avoid conflicting network flags
 	CheckExclusive(ctx, MainnetFlag, DeveloperFlag, RopstenFlag, RinkebyFlag, GoerliFlag, SepoliaFlag, KilnFlag)
 	CheckExclusive(ctx, LightServeFlag, SyncModeFlag, "light")
 	CheckExclusive(ctx, DeveloperFlag, ExternalSignerFlag) // Can't use both ephemeral unlocked and external signer
+	checkAllowTransfer(cfg)
 	if ctx.String(GCModeFlag.Name) == "archive" && ctx.Uint64(TxLookupLimitFlag.Name) != 0 {
 		ctx.Set(TxLookupLimitFlag.Name, "0")
 		log.Warn("Disable transaction unindexing for archive node")
