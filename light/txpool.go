@@ -355,6 +355,11 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 	if from, err = types.Sender(pool.signer, tx); err != nil {
 		return core.ErrInvalidSender
 	}
+
+	//todo: Light client mode is  an experimental feature;
+	// In the future, we need to ADD canTransferGas CHECK when light client mode
+	// works in producation environment.
+
 	// Last but not least check for nonce errors
 	currentState := pool.currentState(ctx)
 	if n := currentState.GetNonce(from); n > tx.Nonce() {
