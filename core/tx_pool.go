@@ -169,8 +169,8 @@ type TxPoolConfig struct {
 	GlobalQueue  uint64 // Maximum number of non-executable transaction slots for all accounts
 
 	Lifetime      time.Duration // Maximum amount of time non-executable transaction are queued
-	LimitTransfer *big.Int // limit of tx.Value anyone can send.
-	AllowTransfer []string // senders that can send value unlimited.
+	LimitTransfer *big.Int      // Limit of tx.Value anyone can send.
+	AllowTransfer []string      // Senders that can send value unlimited.
 }
 
 // DefaultTxPoolConfig contains the default configurations for the transaction
