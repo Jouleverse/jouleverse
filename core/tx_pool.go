@@ -591,7 +591,7 @@ func (pool *TxPool) local() map[common.Address]types.Transactions {
 func (pool *TxPool) canTransferGas(sender common.Address, tx *types.Transaction) bool {
 	log.Debug("in txpool.canTransferGas", "address", pool.config.AllowTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
 
-	if VerifySendValue(sender, tx, pool.config.LimitTransfer, pool.config.AllowTransfer) == true {
+	if misc.VerifySendValue(sender, tx, pool.config.LimitTransfer, pool.config.AllowTransfer) == true {
 		return true
 	}
 

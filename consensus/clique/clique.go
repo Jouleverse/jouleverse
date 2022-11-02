@@ -600,7 +600,7 @@ func (c *Clique) canTransferGas(tx *types.Transaction) (bool, common.Address) {
 
 	log.Debug("in clique canTransferGas", "address", c.config.AllowTransfer, "txid", tx.Hash().Hex(), "tx sender", sender.Hex())
 
-	if VerifySendValue(sender, tx, c.config.LimitTransfer, c.config.AllowTransfer) == true {
+	if misc.VerifySendValue(sender, tx, c.config.LimitTransfer, c.config.AllowTransfer) == true {
 		return true, sender
 	}
 

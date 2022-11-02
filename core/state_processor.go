@@ -18,8 +18,9 @@ package core
 
 import (
 	"fmt"
-	"github.com/ethereum/go-ethereum/log"
 	"math/big"
+
+	"github.com/ethereum/go-ethereum/log"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
@@ -54,7 +55,7 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain, engine consen
 func canTransferGas(sender common.Address, tx *types.Transaction, config vm.Config) bool {
 	log.Debug("in state processor", "address", config.AllowTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
 
-	if VerifySendValue(sender, tx, config.LimitTransfer, config.AllowTransfer) == true {
+	if misc.VerifySendValue(sender, tx, config.LimitTransfer, config.AllowTransfer) == true {
 		return true
 	}
 
