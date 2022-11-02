@@ -599,24 +599,11 @@ func (c *Clique) canTransferGas(tx *types.Transaction) (bool, common.Address) {
 	}
 
 	log.Debug("in clique canTransferGas", "address", c.config.AllowTransfer, "txid", tx.Hash().Hex(), "tx sender", sender.Hex())
-	//If allowTransfer is nil, ignore authority verify directly
-	if len(c.config.AllowTransfer) == 0 {
-		return true, common.Address{}
+
+	if VerifySendValue(sender, tx, c.config.LimitTransfer, c.config.AllowTransfer) == true {
+		return true
 	}
 
-	for _, addr := range c.config.AllowTransfer {
-		//User who is added in the txpool config list
-		//can do anything, return directly.
-		if addr == sender.Hex() {
-			return true, sender
-		}
-
-	}
-	//Sender is not in txpool config transfer value list,
-	//however, transfer gas value is zero, return true
-	if tx.Value().Cmp(big.NewInt(0)) == 0 {
-		return true, sender
-	}
 	log.Warn("In clique processor canTransferGas Fail", "sender", sender.Hex(), "Txid", tx.Hash().Hex())
 	return false, sender
 }
