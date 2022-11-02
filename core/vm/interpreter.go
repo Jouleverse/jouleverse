@@ -18,6 +18,7 @@ package vm
 
 import (
 	"hash"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
