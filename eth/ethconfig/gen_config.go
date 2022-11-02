@@ -62,6 +62,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		CheckpointOracle                      *params.CheckpointOracleConfig `toml:",omitempty"`
 		OverrideTerminalTotalDifficulty       *big.Int                       `toml:",omitempty"`
 		OverrideTerminalTotalDifficultyPassed *bool                          `toml:",omitempty"`
+		LimitTransfer                         *big.Int                       `toml:",omitempty"`
 		AllowTransfer                         []string                       `toml:",omitempty"`
 	}
 	var enc Config
@@ -109,6 +110,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.CheckpointOracle = c.CheckpointOracle
 	enc.OverrideTerminalTotalDifficulty = c.OverrideTerminalTotalDifficulty
 	enc.OverrideTerminalTotalDifficultyPassed = c.OverrideTerminalTotalDifficultyPassed
+	enc.LimitTransfer = c.LimitTransfer
 	enc.AllowTransfer = c.AllowTransfer
 	return &enc, nil
 }
@@ -160,6 +162,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		CheckpointOracle                      *params.CheckpointOracleConfig `toml:",omitempty"`
 		OverrideTerminalTotalDifficulty       *big.Int                       `toml:",omitempty"`
 		OverrideTerminalTotalDifficultyPassed *bool                          `toml:",omitempty"`
+		LimitTransfer                         *big.Int                       `toml:",omitempty"`
 		AllowTransfer                         []string                       `toml:",omitempty"`
 	}
 	var dec Config
@@ -299,6 +302,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		c.OverrideTerminalTotalDifficultyPassed = dec.OverrideTerminalTotalDifficultyPassed
 	}
 	if dec.AllowTransfer != nil {
+		c.LimitTransfer = dec.LimitTransfer
 		c.AllowTransfer = dec.AllowTransfer
 	}
 	return nil

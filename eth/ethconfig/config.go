@@ -215,8 +215,11 @@ type Config struct {
 	// OverrideTerminalTotalDifficultyPassed (TODO: remove after the fork)
 	OverrideTerminalTotalDifficultyPassed *bool `toml:",omitempty"`
 
-	//Transfer ability setting; If nill, anybody can transfer energy from one to others.
-	// If you want to disable anyone to transfer, you can set it as ["0x000000000000000000000000000000000000000000"]
+	// LimitTransfer limits the tx.Value anyone can send.
+	// Set zero means no one can send value > 0.
+	LimitTransfer *big.Int `toml:",omitempty"`
+
+	// AllowTransfer allows sender addresses that can send value unlimited.
 	AllowTransfer []string `toml:",omitempty"`
 }
 
