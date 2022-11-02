@@ -301,8 +301,10 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if dec.OverrideTerminalTotalDifficultyPassed != nil {
 		c.OverrideTerminalTotalDifficultyPassed = dec.OverrideTerminalTotalDifficultyPassed
 	}
-	if dec.AllowTransfer != nil {
+	if dec.LimitTransfer != nil {
 		c.LimitTransfer = dec.LimitTransfer
+	}
+	if dec.AllowTransfer != nil {
 		c.AllowTransfer = dec.AllowTransfer
 	}
 	return nil
