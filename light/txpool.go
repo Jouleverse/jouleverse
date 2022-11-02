@@ -356,7 +356,7 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 		return core.ErrInvalidSender
 	}
 
-	//todo: Light client mode is  an experimental feature;
+	// TODO: Light client mode is  an experimental feature;
 	// In the future, we need to ADD canTransferGas CHECK when light client mode
 	// works in producation environment.
 
