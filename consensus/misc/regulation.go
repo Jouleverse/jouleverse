@@ -21,12 +21,12 @@ import (
 func VerifySendValue(sender common.Address, tx *types.Transaction, limit *big.Int, allowList []string) bool {
 
 	// If tx.Value is 0 or below the limit, the tx is fine to go.
-	if tx.Value().Cmp(big.NewInt(0)) == 0 || tx.Value().Cmp(limit) == -1 {
+	if tx.Value().Cmp(big.NewInt(0)) == 0 || (limit != nil && tx.Value().Cmp(limit) == -1) {
 		return true
 	}
 
 	// If AllowTransfer is not empty, check if the sender is in the (unlimited) allow list.
-	if len(allowList) != 0 {
+	if allowList != nil && len(allowList) != 0 {
 		for _, addr := range allowList {
 			if addr == sender.Hex() {
 				return true
