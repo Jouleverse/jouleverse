@@ -86,8 +86,9 @@ var (
 	// making the transaction invalid, rather a DOS protection.
 	ErrOversizedData = errors.New("oversized data")
 
-	//ErrTransferNotAllowed is returned if the user is not in the memory pool configuration list,
-	//they will not have the transfer permission
+	// ErrTransferNotAllowed is returned if the user is not allowed to transfer
+	// gas energy, according to LimitTransfer and AllowTransfer in the
+	// configuration toml file.
 	ErrTransferNotAllowed = errors.New("not allowed to transfer gas energy")
 )
 
@@ -589,13 +590,13 @@ func (pool *TxPool) local() map[common.Address]types.Transactions {
 
 // Check whether sender is correct one that can send 'energy'
 func (pool *TxPool) canTransferGas(sender common.Address, tx *types.Transaction) bool {
-	log.Debug("in txpool.canTransferGas", "address", pool.config.AllowTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
+	log.Debug("core/tx_pool.go:canTransferGas:", "address", pool.config.AllowTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
 
 	if misc.VerifySendValue(sender, tx, pool.config.LimitTransfer, pool.config.AllowTransfer) == true {
 		return true
 	}
 
-	log.Warn("TxPool canTransfer validate false", "sender", sender.Hex(), "hash", tx.Hash())
+	log.Warn("core/tx_pool.go:canTransferGas: failed", "sender", sender.Hex(), "hash", tx.Hash())
 	return false
 }
 
