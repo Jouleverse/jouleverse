@@ -139,6 +139,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
 	}
+	chainConfig.Clique.LimitTransfer = config.LimitTransfer
 	chainConfig.Clique.AllowTransfer = config.AllowTransfer
 	log.Info("")
 	log.Info(strings.Repeat("-", 153))
@@ -189,6 +190,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 	var (
 		vmConfig = vm.Config{
 			EnablePreimageRecording: config.EnablePreimageRecording,
+			LimitTransfer:           config.LimitTransfer,
 			AllowTransfer:           config.AllowTransfer,
 		}
 		cacheConfig = &core.CacheConfig{
@@ -218,6 +220,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 	if config.TxPool.Journal != "" {
 		config.TxPool.Journal = stack.ResolvePath(config.TxPool.Journal)
 	}
+	config.TxPool.LimitTransfer = config.LimitTransfer
 	config.TxPool.AllowTransfer = config.AllowTransfer
 	eth.txPool = core.NewTxPool(config.TxPool, chainConfig, eth.blockchain)
 

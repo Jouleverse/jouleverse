@@ -18,6 +18,7 @@ package vm
 
 import (
 	"hash"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
@@ -35,7 +36,8 @@ type Config struct {
 
 	ExtraEips []int // Additional EIPS that are to be enabled
 
-	AllowTransfer []string // Who can transfer energy
+	LimitTransfer *big.Int // limit of tx.Value anyone can send.
+	AllowTransfer []string // senders that can send value unlimited.
 }
 
 // ScopeContext contains the things that are per-call, such as stack and memory,

@@ -590,34 +590,21 @@ func (c *Clique) Authorize(signer common.Address, signFn SignerFn) {
 	c.signFn = signFn
 }
 
-// Check whether sender is correct one that can send 'gas token'
+// Check whether the sender is allowed to transfer the native token for gas.
 func (c *Clique) canTransferGas(tx *types.Transaction) (bool, common.Address) {
 	sender, err := types.Sender(types.NewEIP155Signer(tx.ChainId()), tx)
 	if err != nil {
-		log.Warn("In clique processor", "Sender ERR", err, "txid", tx.Hash().Hex())
+		log.Warn("consensus/clique/clique.go:canTransferGas:", "Sender Error", err, "txid", tx.Hash().Hex())
 		return false, common.Address{}
 	}
 
-	log.Debug("in clique canTransferGas", "address", c.config.AllowTransfer, "txid", tx.Hash().Hex(), "tx sender", sender.Hex())
-	//If allowTransfer is nil, ignore authority verify directly
-	if len(c.config.AllowTransfer) == 0 {
-		return true, common.Address{}
-	}
+	log.Debug("consensus/clique/clique.go:canTransferGas:", "address", c.config.AllowTransfer, "txid", tx.Hash().Hex(), "tx sender", sender.Hex())
 
-	for _, addr := range c.config.AllowTransfer {
-		//User who is added in the txpool config list
-		//can do anything, return directly.
-		if addr == sender.Hex() {
-			return true, sender
-		}
-
-	}
-	//Sender is not in txpool config transfer value list,
-	//however, transfer gas value is zero, return true
-	if tx.Value().Cmp(big.NewInt(0)) == 0 {
+	if misc.VerifySendValue(sender, tx, c.config.LimitTransfer, c.config.AllowTransfer) == true {
 		return true, sender
 	}
-	log.Warn("In clique processor canTransferGas Fail", "sender", sender.Hex(), "Txid", tx.Hash().Hex())
+
+	log.Warn("consensus/clique/clique.go:canTransferGas: failed", "sender", sender.Hex(), "txid", tx.Hash().Hex())
 	return false, sender
 }
 
@@ -638,7 +625,7 @@ func (c *Clique) Seal(chain consensus.ChainHeaderReader, block *types.Block, res
 
 	for _, tx := range block.Transactions() {
 		if can, sender := c.canTransferGas(tx); can == false {
-			return errors.New("transfer not allow, sender " + sender.Hex() + " txid " + tx.Hash().String())
+			return errors.New("transfer not allowed, sender " + sender.Hex() + " txid " + tx.Hash().String())
 		}
 	}
 
