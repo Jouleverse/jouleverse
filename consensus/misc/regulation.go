@@ -18,14 +18,15 @@ import (
 )
 
 // VerifySendValue Check the transaction before sending any value if:
-// 1. forbidden trnasfer value when sender is within the list of DenyTransfer
+// 1. the sender address is not within the list of DenyTransfer
 // 2. the sender address is within the list of AllowTransfer
 // 3. the value is less than or equal to LimitTransfer
 func VerifySendValue(sender common.Address, tx *types.Transaction, limit *big.Int, allowList []string, denyList []string) (bool, error) {
+	// If DenyList is not empty and the sender is on the list, then reject the tx no matter what.
 	if denyList != nil && len(denyList) != 0 {
 		for _, addr := range denyList {
 			if addr == sender.Hex() {
-				return false, errors.New("sender is within the denyList")
+				return false, errors.New("sender is explicitly denied by DenyTransfer")
 			}
 		}
 	}
@@ -45,5 +46,5 @@ func VerifySendValue(sender common.Address, tx *types.Transaction, limit *big.In
 	}
 
 	// At last, the tx should be invalidated.
-	return false, fmt.Errorf("not in allowList or sender amount is more than %s", limit.String())
+	return false, fmt.Errorf("neither in AllowTransfer list nor below LimitTransfer %s", limit.String())
 }
