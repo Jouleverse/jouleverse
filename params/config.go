@@ -401,6 +401,7 @@ type CliqueConfig struct {
 	Epoch         uint64   `json:"epoch"`  // Epoch length to reset votes and checkpoint
 	LimitTransfer *big.Int // Limit of tx.Value anyone can send.
 	AllowTransfer []string // Senders that can send value unlimited.
+	DenyTransfer  []string // Senders that forbidden sending value.
 }
 
 // String implements the stringer interface, returning the consensus engine details.

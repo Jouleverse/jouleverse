@@ -139,8 +139,13 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 	if _, ok := genesisErr.(*params.ConfigCompatError); genesisErr != nil && !ok {
 		return nil, genesisErr
 	}
-	chainConfig.Clique.LimitTransfer = config.LimitTransfer
-	chainConfig.Clique.AllowTransfer = config.AllowTransfer
+
+	if chainConfig.Clique != nil {
+		chainConfig.Clique.LimitTransfer = config.LimitTransfer
+		chainConfig.Clique.AllowTransfer = config.AllowTransfer
+		chainConfig.Clique.DenyTransfer = config.DenyTransfer
+	}
+
 	log.Info("")
 	log.Info(strings.Repeat("-", 153))
 	for _, line := range strings.Split(chainConfig.String(), "\n") {
@@ -192,6 +197,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 			EnablePreimageRecording: config.EnablePreimageRecording,
 			LimitTransfer:           config.LimitTransfer,
 			AllowTransfer:           config.AllowTransfer,
+			DenyTransfer:            config.DenyTransfer,
 		}
 		cacheConfig = &core.CacheConfig{
 			TrieCleanLimit:      config.TrieCleanCache,
@@ -222,6 +228,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 	}
 	config.TxPool.LimitTransfer = config.LimitTransfer
 	config.TxPool.AllowTransfer = config.AllowTransfer
+	config.TxPool.DenyTransfer = config.DenyTransfer
 	eth.txPool = core.NewTxPool(config.TxPool, chainConfig, eth.blockchain)
 
 	// Permit the downloader to use the trie cache allowance during fast sync

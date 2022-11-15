@@ -172,6 +172,7 @@ type TxPoolConfig struct {
 	Lifetime      time.Duration // Maximum amount of time non-executable transaction are queued
 	LimitTransfer *big.Int      // Limit of tx.Value anyone can send.
 	AllowTransfer []string      // Senders that can send value unlimited.
+	DenyTransfer  []string      // Senders that forbidden sending value.
 }
 
 // DefaultTxPoolConfig contains the default configurations for the transaction
@@ -590,13 +591,15 @@ func (pool *TxPool) local() map[common.Address]types.Transactions {
 
 // Check whether sender is correct one that can send 'energy'
 func (pool *TxPool) canTransferGas(sender common.Address, tx *types.Transaction) bool {
-	log.Debug("core/tx_pool.go:canTransferGas:", "address", pool.config.AllowTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
+	log.Debug("core/tx_pool.go:canTransferGas:", "allow address", pool.config.AllowTransfer,
+		"deny address", pool.config.DenyTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
 
-	if misc.VerifySendValue(sender, tx, pool.config.LimitTransfer, pool.config.AllowTransfer) == true {
+	success, err := misc.VerifySendValue(sender, tx, pool.config.LimitTransfer, pool.config.AllowTransfer, pool.config.DenyTransfer)
+	if success == true {
 		return true
 	}
 
-	log.Warn("core/tx_pool.go:canTransferGas: failed", "sender", sender.Hex(), "hash", tx.Hash())
+	log.Warn("core/tx_pool.go:canTransferGas: failed", "sender", sender.Hex(), "hash", tx.Hash(), "err", err)
 	return false
 }
 
