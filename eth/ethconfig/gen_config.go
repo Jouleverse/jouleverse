@@ -64,6 +64,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		OverrideTerminalTotalDifficultyPassed *bool                          `toml:",omitempty"`
 		LimitTransfer                         *big.Int                       `toml:",omitempty"`
 		AllowTransfer                         []string                       `toml:",omitempty"`
+		DenyTransfer                          []string                       `toml:",omitempty"`
 	}
 	var enc Config
 	enc.Genesis = c.Genesis
@@ -112,6 +113,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.OverrideTerminalTotalDifficultyPassed = c.OverrideTerminalTotalDifficultyPassed
 	enc.LimitTransfer = c.LimitTransfer
 	enc.AllowTransfer = c.AllowTransfer
+	enc.DenyTransfer = c.DenyTransfer
 	return &enc, nil
 }
 
@@ -164,6 +166,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		OverrideTerminalTotalDifficultyPassed *bool                          `toml:",omitempty"`
 		LimitTransfer                         *big.Int                       `toml:",omitempty"`
 		AllowTransfer                         []string                       `toml:",omitempty"`
+		DenyTransfer                          []string                       `toml:",omitempty"`
 	}
 	var dec Config
 	if err := unmarshal(&dec); err != nil {
@@ -306,6 +309,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.AllowTransfer != nil {
 		c.AllowTransfer = dec.AllowTransfer
+	}
+	if dec.DenyTransfer != nil {
+		c.DenyTransfer = dec.DenyTransfer
 	}
 	return nil
 }

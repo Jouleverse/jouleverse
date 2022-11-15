@@ -591,20 +591,22 @@ func (c *Clique) Authorize(signer common.Address, signFn SignerFn) {
 }
 
 // Check whether the sender is allowed to transfer the native token for gas.
-func (c *Clique) canTransferGas(tx *types.Transaction) (bool, common.Address) {
-	sender, err := types.Sender(types.NewEIP155Signer(tx.ChainId()), tx)
+func (c *Clique) canTransferGas(tx *types.Transaction, config *params.ChainConfig, height *big.Int) (bool, common.Address) {
+	sender, err := types.Sender(types.MakeSigner(config, height), tx)
 	if err != nil {
-		log.Warn("consensus/clique/clique.go:canTransferGas:", "Sender Error", err, "txid", tx.Hash().Hex())
+		log.Warn("consensus/clique/clique.go:canTransferGas:", "Sender Error", err, "txid", tx.Hash().Hex(), "tx type", tx.Type())
 		return false, common.Address{}
 	}
 
-	log.Debug("consensus/clique/clique.go:canTransferGas:", "address", c.config.AllowTransfer, "txid", tx.Hash().Hex(), "tx sender", sender.Hex())
+	log.Debug("consensus/clique/clique.go:canTransferGas:", "allow address", c.config.AllowTransfer, "deny address",
+		c.config.DenyTransfer, "txid", tx.Hash().Hex(), "tx sender", sender.Hex())
 
-	if misc.VerifySendValue(sender, tx, c.config.LimitTransfer, c.config.AllowTransfer) == true {
+	success, err := misc.VerifySendValue(sender, tx, c.config.LimitTransfer, c.config.AllowTransfer, c.config.DenyTransfer)
+	if success == true {
 		return true, sender
 	}
 
-	log.Warn("consensus/clique/clique.go:canTransferGas: failed", "sender", sender.Hex(), "txid", tx.Hash().Hex())
+	log.Warn("consensus/clique/clique.go:canTransferGas: failed", "sender", sender.Hex(), "txid", tx.Hash().Hex(), "err", err)
 	return false, sender
 }
 
@@ -624,7 +626,7 @@ func (c *Clique) Seal(chain consensus.ChainHeaderReader, block *types.Block, res
 	}
 
 	for _, tx := range block.Transactions() {
-		if can, sender := c.canTransferGas(tx); can == false {
+		if can, sender := c.canTransferGas(tx, chain.Config(), header.Number); can == false {
 			return errors.New("transfer not allowed, sender " + sender.Hex() + " txid " + tx.Hash().String())
 		}
 	}

@@ -53,13 +53,15 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain, engine consen
 
 // Check whether sender is correct one that can send 'gas token'
 func canTransferGas(sender common.Address, tx *types.Transaction, config vm.Config) bool {
-	log.Debug("core/state_processor.go:canTransferGas:", "address", config.AllowTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
+	log.Debug("core/state_processor.go:canTransferGas:", "allow address", config.AllowTransfer,
+		"deny address", config.DenyTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
 
-	if misc.VerifySendValue(sender, tx, config.LimitTransfer, config.AllowTransfer) == true {
+	success, err := misc.VerifySendValue(sender, tx, config.LimitTransfer, config.AllowTransfer, config.DenyTransfer)
+	if success == true {
 		return true
 	}
 
-	log.Warn("core/state_processor.go:canTransferGas: failed", "sender", sender.Hex(), "txid", tx.Hash().Hex())
+	log.Warn("core/state_processor.go:canTransferGas: failed", "sender", sender.Hex(), "txid", tx.Hash().Hex(), "err", err)
 	return false
 }
 

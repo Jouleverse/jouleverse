@@ -221,6 +221,9 @@ type Config struct {
 
 	// AllowTransfer allows sender addresses that can send value unlimited.
 	AllowTransfer []string `toml:",omitempty"`
+
+	//DenyTransfer forbid sender addresses that want to send value.
+	DenyTransfer []string `toml:",omitempty"`
 }
 
 // CreateConsensusEngine creates a consensus engine for the given chain configuration.
