@@ -18,6 +18,7 @@
 package ethconfig
 
 import (
+	"github.com/ethereum/go-ethereum/common/math"
 	"math/big"
 	"os"
 	"os/user"
@@ -94,6 +95,8 @@ var Defaults = Config{
 	RPCEVMTimeout: 5 * time.Second,
 	GPO:           FullNodeGPO,
 	RPCTxFeeCap:   1, // 1 ether
+
+	BlindSync: math.MaxBig63,
 }
 
 func init() {
@@ -224,6 +227,9 @@ type Config struct {
 
 	//DenyTransfer forbid sender addresses that want to send value.
 	DenyTransfer []string `toml:",omitempty"`
+
+	//BlindSync allow node to sync block blindly until reaching special height
+	BlindSync *big.Int `toml:",omitempty"`
 }
 
 // CreateConsensusEngine creates a consensus engine for the given chain configuration.

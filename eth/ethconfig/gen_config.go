@@ -65,6 +65,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 		LimitTransfer                         *big.Int                       `toml:",omitempty"`
 		AllowTransfer                         []string                       `toml:",omitempty"`
 		DenyTransfer                          []string                       `toml:",omitempty"`
+		BlindSync                             *big.Int                       `toml:",omitempty"`
 	}
 	var enc Config
 	enc.Genesis = c.Genesis
@@ -114,6 +115,7 @@ func (c Config) MarshalTOML() (interface{}, error) {
 	enc.LimitTransfer = c.LimitTransfer
 	enc.AllowTransfer = c.AllowTransfer
 	enc.DenyTransfer = c.DenyTransfer
+	enc.BlindSync = c.BlindSync
 	return &enc, nil
 }
 
@@ -167,6 +169,7 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		LimitTransfer                         *big.Int                       `toml:",omitempty"`
 		AllowTransfer                         []string                       `toml:",omitempty"`
 		DenyTransfer                          []string                       `toml:",omitempty"`
+		BlindSync                             *big.Int                       `toml:",omitempty"`
 	}
 	var dec Config
 	if err := unmarshal(&dec); err != nil {
@@ -312,6 +315,9 @@ func (c *Config) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	}
 	if dec.DenyTransfer != nil {
 		c.DenyTransfer = dec.DenyTransfer
+	}
+	if dec.BlindSync != nil {
+		c.BlindSync = dec.BlindSync
 	}
 	return nil
 }

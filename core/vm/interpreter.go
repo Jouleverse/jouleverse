@@ -39,6 +39,8 @@ type Config struct {
 	LimitTransfer *big.Int // limit of tx.Value anyone can send.
 	AllowTransfer []string // senders that can send value unlimited.
 	DenyTransfer  []string // senders that forbidden sending value.
+
+	BlindSync *big.Int // block height that blindly sync block boundary
 }
 
 // ScopeContext contains the things that are per-call, such as stack and memory,
