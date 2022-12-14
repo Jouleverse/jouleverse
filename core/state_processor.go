@@ -52,10 +52,16 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain, engine consen
 }
 
 // Check whether sender is correct one that can send 'gas token'
-func canTransferGas(sender common.Address, tx *types.Transaction, config vm.Config) bool {
+func canTransferGas(sender common.Address, tx *types.Transaction, height *big.Int, config vm.Config) bool {
 	log.Debug("core/state_processor.go:canTransferGas:", "allow address", config.AllowTransfer,
-		"deny address", config.DenyTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex())
+		"deny address", config.DenyTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex(),
+		"height", height.Int64(), "blind sync", config.BlindSync.Int64())
 
+	if config.BlindSync.Cmp(height) == 1 {
+		log.Debug("core/state_processor.go:canTransferGas: before blind sync height", "sender", sender.Hex(), "txid", tx.Hash().Hex(),
+			"deny address", config.DenyTransfer, "height", height.Int64(), "blind sync", config.BlindSync.Int64())
+		return true
+	}
 	success, err := misc.VerifySendValue(sender, tx, config.LimitTransfer, config.AllowTransfer, config.DenyTransfer)
 	if success == true {
 		return true
@@ -96,7 +102,7 @@ func (p *StateProcessor) Process(block *types.Block, statedb *state.StateDB, cfg
 		}
 		statedb.Prepare(tx.Hash(), i)
 
-		if false == canTransferGas(msg.From(), tx, cfg) {
+		if false == canTransferGas(msg.From(), tx, block.Number(), cfg) {
 			return nil, nil, 0, fmt.Errorf("could not transfer gas energy in tx %d [%v] sent by [%v]", i, tx.Hash().Hex(), msg.From().Hex())
 		}
 

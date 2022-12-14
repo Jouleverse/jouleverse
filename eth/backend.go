@@ -198,6 +198,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*Ethereum, error) {
 			LimitTransfer:           config.LimitTransfer,
 			AllowTransfer:           config.AllowTransfer,
 			DenyTransfer:            config.DenyTransfer,
+			BlindSync:               config.BlindSync,
 		}
 		cacheConfig = &core.CacheConfig{
 			TrieCleanLimit:      config.TrieCleanCache,
