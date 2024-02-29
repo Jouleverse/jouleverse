@@ -51,6 +51,10 @@ type Config struct {
 	// value is specified, the basename of the current executable is used.
 	Name string `toml:"-"`
 
+	// VersionTag, When sending node configuration packages, change the VersionTag in toml every time,
+	//so that we can know whether the peer node has been upgraded (which version of the package is used)
+	VersionTag string `toml:",omitempty"`
+
 	// UserIdent, if set, is used as an additional component in the devp2p node identifier.
 	UserIdent string `toml:",omitempty"`
 
@@ -298,6 +302,9 @@ func (c *Config) NodeName() string {
 	}
 	if c.Version != "" {
 		name += "/v" + c.Version
+	}
+	if c.VersionTag != "" {
+		name += "/tag-" + c.VersionTag
 	}
 	name += "/" + runtime.GOOS + "-" + runtime.GOARCH
 	name += "/" + runtime.Version()
