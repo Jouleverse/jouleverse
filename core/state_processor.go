@@ -55,11 +55,19 @@ func NewStateProcessor(config *params.ChainConfig, bc *BlockChain, engine consen
 func canTransferGas(sender common.Address, tx *types.Transaction, height *big.Int, config vm.Config) bool {
 	log.Debug("core/state_processor.go:canTransferGas:", "allow address", config.AllowTransfer,
 		"deny address", config.DenyTransfer, "tx sender", sender.Hex(), "txid", tx.Hash().Hex(),
-		"height", height.Int64(), "blind sync", config.BlindSync.Int64())
+		"height", height.Int64(), "blind sync", blindSyncLogValue(config.BlindSync))
 
-	if config.BlindSync.Cmp(height) == 1 {
-		log.Debug("core/state_processor.go:canTransferGas: before blind sync height", "sender", sender.Hex(), "txid", tx.Hash().Hex(),
-			"deny address", config.DenyTransfer, "height", height.Int64(), "blind sync", config.BlindSync.Int64())
+	// Before the BlindSync activation height the transfer ban is not in force,
+	// so blocks below it are accepted without any transfer check. This lets
+	// nodes blind-sync historical blocks produced under earlier settings.
+	//
+	// A nil BlindSync means "no activation height is configured", i.e. the
+	// transfer ban is never activated and every transaction is accepted.
+	// This keeps vm.Config{} (used by tests and by historical state
+	// regeneration) working instead of dereferencing a nil pointer.
+	if config.BlindSync == nil || config.BlindSync.Cmp(height) > 0 {
+		log.Debug("core/state_processor.go:canTransferGas: below blind sync height", "sender", sender.Hex(), "txid", tx.Hash().Hex(),
+			"deny address", config.DenyTransfer, "height", height.Int64(), "blind sync", blindSyncLogValue(config.BlindSync))
 		return true
 	}
 	success, err := misc.VerifySendValue(sender, tx, config.LimitTransfer, config.AllowTransfer, config.DenyTransfer)
@@ -69,6 +77,14 @@ func canTransferGas(sender common.Address, tx *types.Transaction, height *big.In
 
 	log.Warn("core/state_processor.go:canTransferGas: failed", "sender", sender.Hex(), "txid", tx.Hash().Hex(), "err", err)
 	return false
+}
+
+// blindSyncLogValue renders a possibly-nil BlindSync height for logging.
+func blindSyncLogValue(blindSync *big.Int) interface{} {
+	if blindSync == nil {
+		return "nil"
+	}
+	return blindSync.Int64()
 }
 
 // Process processes the state changes according to the Ethereum rules by running

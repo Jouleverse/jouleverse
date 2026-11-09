@@ -40,7 +40,7 @@ type Config struct {
 	AllowTransfer []string // senders that can send value unlimited.
 	DenyTransfer  []string // senders that forbidden sending value.
 
-	BlindSync *big.Int // block height that blindly sync block boundary
+	BlindSync *big.Int // activation height of the native-token transfer ban; nil or blocks below it skip the check
 }
 
 // ScopeContext contains the things that are per-call, such as stack and memory,
