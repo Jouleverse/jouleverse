@@ -228,7 +228,23 @@ type Config struct {
 	//DenyTransfer forbid sender addresses that want to send value.
 	DenyTransfer []string `toml:",omitempty"`
 
-	//BlindSync allow node to sync block blindly until reaching special height
+	// BlindSync is the activation height of the native-token transfer ban.
+	//
+	// Below this height transfer rules are not enforced; at and above it
+	// every transaction is checked against LimitTransfer / AllowTransfer /
+	// DenyTransfer. Set LimitTransfer to 0 to forbid all value transfers
+	// once activated.
+	//
+	// Because rules are not enforced below the activation height, nodes can
+	// blind-sync historical blocks that were produced under different
+	// regulation settings.
+	//
+	// Default is math.MaxBig63 (2^63-1), which effectively never activates
+	// the ban. A nil value means no activation height is configured, i.e.
+	// the ban is never activated either.
+	//
+	// WARNING: this value participates in block validation. Changing it
+	// diverges from the rest of the network.
 	BlindSync *big.Int `toml:",omitempty"`
 }
 
